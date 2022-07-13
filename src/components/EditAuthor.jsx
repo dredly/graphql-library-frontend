@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useMutation } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
+import Select from "react-select";
 import { EDIT_BIRTHYEAR } from "../mutations";
-import { ALL_AUTHORS } from "../queries";
+import { ALL_AUTHORS, ALL_AUTHOR_NAMES } from "../queries";
 
 const EditAuthor = () => {
-  const [name, setName] = useState("");
+  const [name, setName] = useState(null);
   const [born, setBorn] = useState("");
 
   const [editAuthor] = useMutation(EDIT_BIRTHYEAR, {
@@ -14,11 +15,17 @@ const EditAuthor = () => {
     },
   });
 
+  const queryResult = useQuery(ALL_AUTHOR_NAMES);
+  const authorNames = queryResult.data.allAuthors.map((a) => a.name);
+  const authorOptions = authorNames.map((n) => {
+    return { value: n, label: n };
+  });
+
   const submit = (evt) => {
     evt.preventDefault();
 
     editAuthor({
-      variables: { name, setBornTo: Number(born) },
+      variables: { name: name.value, setBornTo: Number(born) },
     });
 
     setName("");
@@ -27,10 +34,7 @@ const EditAuthor = () => {
 
   return (
     <form onSubmit={submit}>
-      <div>
-        name
-        <input value={name} onChange={({ target }) => setName(target.value)} />
-      </div>
+      <Select defaultValue={name} onChange={setName} options={authorOptions} />
       <div>
         born
         <input value={born} onChange={({ target }) => setBorn(target.value)} />
